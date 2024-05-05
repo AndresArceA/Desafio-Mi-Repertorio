@@ -156,8 +156,13 @@
         artista: artista.value,
         tono: tono.value,
       })
-      .then(() => {
-        getData();
+      // .then(() => {
+      //   getData();
+      .then((response) => {
+      if (response.data) {
+          alert(JSON.stringify(response.data));
+          }
+      getData();
         document.getElementById("agregar").style.display = "block";
         document.getElementById("editar").style.display = "none";
       });
