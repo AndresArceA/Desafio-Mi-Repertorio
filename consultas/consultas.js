@@ -115,11 +115,6 @@ const listacancion = async () => {
 
 const editacancion = async (id,titulo, artista, tono) => {
   try {
-    //Convierto titulos y nombres de artistas en minusculas
-    const titulomin = titulo.trim().toLowerCase();
-    const artistamin = artista.trim().toLowerCase();
-    const tonomin = tono.trim().toLowerCase();
-
     //verifico si la canción ya existe en la tabla
     const existeCancion = await pool.query({
       text: `SELECT * FROM ${tabla} WHERE id = $1`,
@@ -154,55 +149,31 @@ const editacancion = async (id,titulo, artista, tono) => {
   }
 };
 
-module.exports = {agregacancion, listacancion, editacancion};
+//eliminar canción
 
-//consultar por rut
-const consultaAlumno = async (rut) => {
+const borracancion = async (id) => {
   try {
-    const consulta = {
-      text: "select * from alumnos where rut = $1",
-      values: [rut],
-    };
-    const res = await pool.query(consulta);
-    console.log(`El estudiante con el rut ${rut} es: ${JSON.stringify(res.rows)}`);
-  } catch (error) {
-    console.log(error.code, error.message);
-  }
-};
-
-//export {consultaAlumno}
-
-
-
-
-// Función para actualizar un alumno por su Rut
-const actualizarAlumno = async (rut, nombre, curso, nivel) => {
-  console.log(rut, nombre, curso , nivel);
-  if (!rut || !nombre || !curso || !nivel) {
-    //valida que se estén pasando los parametros para la consulta
-    console.log(
-      "Debe proporcionar todos los valores correctamente para actualizar la informacion de un Alumno, Rut, Nombre, Curso y Nivel."
-    );
-    return "Debe proporcionar todos los valores correctamente para actualizar la informacion de un Alumno, Rut, Nombre, Curso y Nivel.";
-  }
-    //return res("Debe proporcionar todos los valores correctamente para actualizar la informacion de un Alumno, Rut, Nombre, Curso y Nivel.");}
-  try {
-    const res = await pool.query({
-      text: `UPDATE ${tabla} SET nombre=$2, curso=$3, nivel=$4 WHERE rut=$1 RETURNING *`,
-      values: [rut, nombre, curso, nivel],
+    //verifico si la canción ya existe en la tabla
+    const existeCancion = await pool.query({
+      text: `SELECT * FROM ${tabla} WHERE id = $1`,
+      values: [id],
     });
-
-    if (res.rowCount > 0) {
-      console.log(`Alumno con rut ${rut} actualizado con éxito`);
-      console.log("Alumno Actualizado: ", res.rows[0]);
-    } else {
-      console.log(
-        `No se encontró ningún alumno con el rut ${rut}, revise los datos y reintente`
-      );
-      return `No se encontró ningún alumno con el rut ${rut}, revise los datos y reintente`;
-    }
+    console.log(existeCancion);
+    if (existeCancion.rowCount === 0) {
+      return `La canción con el ID ${id} no existe en el repertorio, seleccione una existente para eliminar.`;
+    }else{
+    
+    //si existe, elimino el registro
+      const result = await pool.query({
+      text: `DELETE FROM ${tabla} WHERE id = $1 RETURNING *;`,
+      values: [id]
+    });
+    console.log(`Canción ${id} ${result.titulo} de ${result.artista} eliminada con éxito`);
+    console.log("Canción Eliminada: ", result.rows[0]);
+    console.log(result.rows[0]);
+    return `La canción con Id ${id} ${result.titulo} de ${result.artista} fué eliminada correctamente.`}; // Devuelve los datos de la canción agregada
   } catch (error) {
-    console.log("Error al actualizar el alumno");
+    console.log("Error al eliminar la canción");
     const EE = errores(error.code, error.status, error.message);
     console.log(
       "Status ",
@@ -216,142 +187,9 @@ const actualizarAlumno = async (rut, nombre, curso, nivel) => {
   }
 };
 
-//export {actualizarAlumno};
-
-
-// Función para eliminar un alumno por su rut
-const eliminarAlumno = async (rut) => {
-  try {
-    if (!rut) {
-    console.log("Debe proporcionar un valor para buscar el 'rut' del alumno que desea eliminar.");
-    return "Debe proporcionar un valor para buscar el 'rut' del alumno que desea eliminar.";
-  }
-  // Verifico si el Rut es un valor numérico válido antes de realizar la consulta,
-  //para valor string opera el manejo de errores capturando el codigo de error.
-  if (isNaN(rut)) {
-    console.log("El Rut debe ser un valor numérico válido.");
-    return;
-  }
-    const existeRut = await pool.query({
-      // Consulto si el Rut existe en la tabla
-      text: `SELECT * FROM ${tabla} WHERE rut = $1`,
-      values: [rut],
-    });
-    
-    if (
-      // Verifico si el Rut existe en la tabla
-      existeRut.rowCount === 0
-    ) {
-      console.log(
-        `El Rut ${rut} no existe en la base de datos. Revise el Rut e intentelo nuevamente`
-      );
-    } else {
-      // Si el Rut existe, realizo la operación
-      const res = await pool.query({
-        text: `DELETE FROM ${tabla} WHERE rut=$1 RETURNING *`,
-        values: [rut],
-      });
-      console.log(`${JSON.stringify(res.rows)} Alumno con rut ${rut} eliminado con éxito`);
-      console.log("Alumno Eliminado: ", res.rows[0]);
-    }
-  } catch (error) {
-    // Manejo de los errores
-    const EE = errores(error.code, error.status, error.message);
-    console.log(
-      "Status ",
-      EE.status,
-      " | Error Cod. ",
-      EE.code,
-      " | ",
-      EE.message
-    );
-  }
-};
-
-//export {eliminarAlumno};
-
-// Función para consultar un alumno por su rut
-const consultAlumno = async (rut) => {
-  try {
-    if (!rut) {
-    console.log("Debe proporcionar un valor para buscar el 'rut' del alumno que desea eliminar.");
-    return;
-  }
-  // Verifico si el Rut es un valor numérico válido antes de realizar la consulta,
-  //para valor string opera el manejo de errores capturando el codigo de error.
-  if (isNaN(rut)) {
-    console.log("El Rut debe ser un valor numérico válido.");
-    return;
-  }
-    const existeRut = await pool.query({
-      // Consulto si el Rut existe en la tabla
-      text: `SELECT * FROM ${tabla} WHERE rut = $1`,
-      values: [rut],
-    });
-    
-    if (
-      // Verifico si el Rut existe en la tabla
-      existeRut.rowCount === 0
-    ) {
-      console.log(
-        `El Rut ${rut} no existe en la base de datos. Revise el Rut e intentelo nuevamente`
-      );
-    } else {
-      // Si el Rut existe, realizo la operación
-      const consulta = {
-        text: "select * from alumnos where rut = $1",
-        values: [rut],
-      };
-      console.log(`${JSON.stringify(consulta.rows)} Alumno con rut ${rut} consultado con éxito`);
-      console.log("Alumno Consultado ", consulta.rows[0]);
-    }
-  } catch (error) {
-    // Manejo de los errores
-    const EE = errores(error.code, error.status, error.message);
-    console.log(
-      "Status ",
-      EE.status,
-      " | Error Cod. ",
-      EE.code,
-      " | ",
-      EE.message
-    );
-  }
-};
-
-//export {consultAlumno};
-
-// //eliminar registro de estudiante {eliminar}
-// const eliminarEstudiante = async (rut) => {
-//   try {
-//     const consulta = {
-//       text: "delete from alumnos where rut = $1",
-//       values: [rut],
-//     };
-//     const res = await pool.query(consulta);
-//     console.log(`${JSON.stringify(res.rows)} Estudiante con rut ${rut} eliminado correctamente!`);
-//   } catch (error) {
-//     console.log(error.code, error.message);
-// }
-// };
+module.exports = {agregacancion, listacancion, editacancion, borracancion};
 
 console.log('Archivo de consultas cargado con éxito 👌');
 
 
 
-// //nombrar acciones/fx's
-// if (accion === "agregar") {
-//   nuevoEstudiante(nombre, rut, curso, nivel);
-// } else if (accion === "verRut") {
-//   rut = argumento[1];
-//   rutEstudientes(rut);
-// } else if (accion === "verTodos") {
-//   verEstudiantes();
-// } else if (accion === "actualizar") {
-//   actualizarEstudiante(nombre, rut, curso, nivel);
-// } else if (accion === "eliminar") {
-//   rut = argumento[1];
-//   eliminarEstudiante(rut);
-// } else {
-//   console.log("Accion no valida!🔥");
-// }

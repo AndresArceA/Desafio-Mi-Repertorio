@@ -132,7 +132,7 @@
   }
 
   function eliminarCancion(i, id) {
-    axios.delete(url + "?id=" + id).then(() => {
+    axios.delete(url + "?id=" + id).then(() => {// /cancion?id=10
       alert("Canción " + canciones[i].titulo + " eliminada");
       getData();
     });

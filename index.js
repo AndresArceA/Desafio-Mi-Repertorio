@@ -4,10 +4,11 @@ const path = require('path');
 const {errores} = require('./error/Errores.js');
 const app = express();
 
-//importo las funciones de la base de datos
-const { agregacancion } = require('./consultas/consultas.js');
-const {listacancion} = require('./consultas/consultas.js');
-const {editacancion} = require('./consultas/consultas.js');
+//importo las funciones del archivo de consultas
+// const { agregacancion } = require('./consultas/consultas.js');
+// const {listacancion} = require('./consultas/consultas.js');
+// const {editacancion} = require('./consultas/consultas.js');
+const {agregacancion, listacancion, editacancion, borracancion} = require('./consultas/consultas.js');
 // const {agregacancion} = require('./consultas/consultas.js');
 
 const PORT = process.env.PORT || 3000;
@@ -83,27 +84,6 @@ app.get("/canciones", async (req, res) => {
 });
 
 //ruta PUT /cancion, que actualiza los registros una cancion en la tabla
-// app.put("/cancion", async (req, res) => {
-//     const { titulo, artista, tono } = req.body;
-  
-//     if (!titulo || !artista || !tono) {
-//       //valida que se estén pasando los parametros para la consulta
-//       console.log(
-//         "Debe proporcionar todos los valores correctamente para para editar una Canción en el  registro."
-//       );
-//       res.send("Debe proporcionar todos los valores correctamente para editar una Canción en el registro.");
-//       return;
-//     }
-//     try {
-//       const cancionedit = await editacancion(titulo, artista, tono);
-//       res.json(cancionedit);
-//     } catch (error) {
-//       console.log(error);
-//       res.status(500).json({
-//         msg: "Error al editar la canción",
-//       });
-//     }
-//   });
 
 app.put("/cancion/:id", async (req, res) => {
     const id = req.params.id; // Obtener el ID de la canción de los parámetros de la URL
@@ -125,3 +105,22 @@ app.put("/cancion/:id", async (req, res) => {
     }
 });
 
+//ruta DELETE /cancion, que recibe el id de la canción y borra el registro
+
+app.delete("/cancion", async (req, res) => {
+    const id = req.query.id; // Obtener el ID de la canción de los parámetros de la URL
+    if (!id) {
+        // Valida que se estén pasando los parámetros para la consulta
+        console.log("Debe proporcionar el Id de la canción a eliminar del registro.");
+        res.send("Debe proporcionar el Id de la canción a eliminar del registro.");
+        return;
+    }
+
+    try {
+        const delcancion = await borracancion(id); // Llama a la función para eliminar la canción
+        res.json(delcancion);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ msg: "Error al eliminar la canción" });
+    }
+});
