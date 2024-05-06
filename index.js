@@ -5,12 +5,9 @@ const {errores} = require('./error/Errores.js');
 const app = express();
 
 //importo las funciones del archivo de consultas
-// const { agregacancion } = require('./consultas/consultas.js');
-// const {listacancion} = require('./consultas/consultas.js');
-// const {editacancion} = require('./consultas/consultas.js');
 const {agregacancion, listacancion, editacancion, borracancion} = require('./consultas/consultas.js');
-// const {agregacancion} = require('./consultas/consultas.js');
 
+//configuro el puerto de conexion y levanto el servidor
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
@@ -22,18 +19,23 @@ app.use(express.json()); // Middleware para analizar el cuerpo de la solicitud c
 // dejo la carpeta /assets/img como publica
 app.use(express.static(path.join(__dirname, 'assets/img')));
 
-// Middleware para manejar errores 404 (páginas no encontradas)
+// Middleware para manejar errores 404 (páginas no encontradas) ---no lo usé porque cuando tengo error de alguna ruta dentro de las consultas de la tabla 
+// me despliega la pagina 404
 // app.use((req, res) => {
 //     res.status(404).sendFile(path.join(__dirname, "/404.html"));
 //   });
 
 
 //ruta para cargar index.html
-
 app.get("/", (req, res) => {
   try {
-    res.sendFile(path.join(__dirname, '/index.html'));
-   } catch (error) {
+    res.sendFile(path.join(__dirname, "/index.html"), (err) => {
+      if (err) {
+        console.error("Error al enviar index.html:", err);
+        res.sendFile(path.join(__dirname, "/404.html")); // Redirigir a la página 404 si hay un error al enviar el archivo
+      }
+    });
+  } catch (error) {
     const EE = errores(error.code, error.status, error.message);
     console.log("Error", error);
     res.status(EE.status).json({
@@ -41,6 +43,7 @@ app.get("/", (req, res) => {
     });
   }
 });
+
 
 //ruta POST /cancion, que inserta los registros de las caciones en la tabla
 app.post("/cancion", async (req, res) => {
@@ -92,7 +95,7 @@ app.put("/cancion/:id", async (req, res) => {
     if (!id || !titulo || !artista || !tono) {
         // Valida que se estén pasando los parámetros para la consulta
         console.log("Debe proporcionar todos los valores correctamente para editar una Canción en el registro.");
-        res.send("Debe proporcionar todos los valores correctamente para editar una Canción en el registro.");
+        res.send("Debe proporcionar todos los valores correctamente para editar una Canción en el registro, Clickee boton Editar en la tabla de canciones.");
         return;
     }
 
