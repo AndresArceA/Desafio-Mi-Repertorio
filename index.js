@@ -29,7 +29,7 @@ app.use(express.static(path.join(__dirname, 'assets/img')));
 //ruta para cargar index.html
 app.get("/", (req, res) => {
   try {
-    res.sendFile(path.join(__dirname, "/index.html"), (err) => {
+    res.sendFile(path.join(__dirname, "/indx.html"), (err) => {
       if (err) {
         console.error("Error al enviar index.html:", err);
         res.sendFile(path.join(__dirname, "/404.html")); // Redirigir a la página 404 si hay un error al enviar el archivo
